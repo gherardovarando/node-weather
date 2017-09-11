@@ -9,18 +9,19 @@ const defaultoptions = {
   source: 'openweathermap',
   key: null,
   units: 'metric',
-  cacheInterval: 600000
+  cacheInterval: 600000,
+  safeInterval: 600000
 }
 
 
 class Weather {
-
-
+  
   constructor(options) {
     options = options || defaultoptions;
     this._key = options.key;
     this._options = Object.assign(defaultoptions, options);
     this._cache = {};
+    this._lastTime = 0;
   }
 
   setkey(key) {
@@ -37,8 +38,10 @@ class Weather {
 
   now(x, cl) {
     let time = (new Date()).getTime();
+    if (time - this._lastTime <= this._options.safeInterval) {
+      return;
+    }
     if (typeof this._cache[x] != 'undefined') {
-      console.log('retrive from cache');
       if (typeof x === 'string') {
         x = x.toLowerCase();
       }
@@ -49,20 +52,21 @@ class Weather {
         return;
       }
     }
-    let url = urls.base;
-    if (typeof x === 'string') {
-      url += `q=${x}`;
-    } else if (typeof x === 'number') {
-      url += `id=${x}`;
-    } else {
-      return;
+    if (this._options.source === 'openweathermap') {
+      let url = urls.base;
+      if (typeof x === 'string') {
+        url += `q=${x}`;
+      } else if (typeof x === 'number') {
+        url += `id=${x}`;
+      } else {
+        return;
+      }
+      url += (urls.units + this._options.units + urls.identity + this._key);
+      this._request(url, cl);
     }
-    url += (urls.units + this._options.units + urls.identity + this._key);
-    this._request(url, cl);
   }
 
   _request(url, cl) {
-    console.log('requesting');
     http.get(url, (res) => {
       //let obj = JSON.parse(res);
       const {
@@ -75,7 +79,6 @@ class Weather {
         console.log(url);
         return;
       }
-
       res.setEncoding('utf8');
       let raw = '';
       res.on('data', (chunk) => {
@@ -94,9 +97,6 @@ class Weather {
 
     });
   }
-
-
-
 }
 
 
