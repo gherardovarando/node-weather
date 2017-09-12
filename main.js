@@ -1,8 +1,10 @@
 const http = require("http");
 const urls = {
-  identity: '&APPID=',
-  units: '&units=',
-  base: 'http://api.openweathermap.org/data/2.5/weather?'
+  openweathermap : {
+    identity: '&APPID=',
+    units: '&units=',
+    base: 'http://api.openweathermap.org/data/2.5/weather?'
+  }
 }
 
 const defaultoptions = {
@@ -15,7 +17,7 @@ const defaultoptions = {
 
 
 class Weather {
-  
+
   constructor(options) {
     options = options || defaultoptions;
     this._key = options.key;
@@ -53,7 +55,8 @@ class Weather {
       }
     }
     if (this._options.source === 'openweathermap') {
-      let url = urls.base;
+      let u = urls.openweathermap;
+      let url = u.base;
       if (typeof x === 'string') {
         url += `q=${x}`;
       } else if (typeof x === 'number') {
@@ -61,7 +64,7 @@ class Weather {
       } else {
         return;
       }
-      url += (urls.units + this._options.units + urls.identity + this._key);
+      url += (u.units + this._options.units + u.identity + this._key);
       this._request(url, cl);
     }
   }
@@ -76,7 +79,6 @@ class Weather {
 
       if (statusCode != 200) {
         console.log('error');
-        console.log(url);
         return;
       }
       res.setEncoding('utf8');
